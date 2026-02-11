@@ -1,0 +1,16 @@
+---
+galaxy_info:
+  role_name: ufw_profiles
+  namespace: khaosx
+  author: Kris
+  description: Manage reusable UFW application profiles and optionally allow selected profiles.
+  license: MIT
+  min_ansible_version: "2.15"
+  platforms:
+    - name: Ubuntu
+  galaxy_tags:
+    - ufw
+    - firewall
+    - ubuntu
+    - security
+dependencies: []
