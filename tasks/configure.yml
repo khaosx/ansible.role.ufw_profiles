@@ -1,0 +1,25 @@
+---
+- name: Configure | Ensure UFW applications directory exists
+  ansible.builtin.file:
+    path: /etc/ufw/applications.d
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Configure | Render UFW application profiles
+  ansible.builtin.template:
+    src: ufw_profile.j2
+    dest: "/etc/ufw/applications.d/{{ __ufw_profiles_profile_filename }}"
+    owner: root
+    group: root
+    mode: "0644"
+  vars:
+    __ufw_profiles_profile_filename: >-
+      {{ item['profile_filename']
+        | default(item['name'] | lower | replace(' ', '-'))
+      }}
+  loop: "{{ ufw_profiles_catalog }}"
+  loop_control:
+    label: "{{ item['name'] }}"
+  register: __ufw_profiles_render

@@ -1,0 +1,41 @@
+---
+argument_specs:
+  main:
+    short_description: Manage reusable UFW application profiles and optional allow rules.
+    options:
+      ufw_profiles_catalog:
+        description: List of UFW application profile definitions to render under /etc/ufw/applications.d.
+        type: list
+        default: []
+        elements: dict
+        options:
+          name:
+            description: UFW application profile section name.
+            type: str
+            required: true
+          ports:
+            description: Port entries exposed by the profile (for example, 53 or 443/tcp).
+            type: list
+            required: true
+            elements: str
+          title:
+            description: Optional title rendered in the UFW profile.
+            type: str
+            required: false
+          description:
+            description: Optional description rendered in the UFW profile.
+            type: str
+            required: false
+          profile_filename:
+            description: Optional filename for the rendered profile.
+            type: str
+            required: false
+      ufw_profiles_allow_applications:
+        description: List of UFW application profile names to allow with ufw.
+        type: list
+        default: []
+        elements: str
+      ufw_profiles_update_cache:
+        description: Rebuild UFW application cache when rendered profiles change.
+        type: bool
+        default: true

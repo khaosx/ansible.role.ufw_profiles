@@ -1,67 +1,102 @@
-# ansible.role.ufw_profiles
+# Role: ufw_profiles
 
-Create and manage reusable UFW application profiles from data, then optionally allow selected profiles.
+## Description
 
-## Purpose
-
-This role:
-- Renders UFW app profiles into `/etc/ufw/applications.d`
-- Refreshes UFW app cache when profile definitions change
-- Optionally enables selected profiles with `ufw allow <profile>`
+Manage reusable UFW application profiles by rendering profile definitions into `/etc/ufw/applications.d`, optionally refreshing the UFW app cache, and optionally allowing selected profiles.
 
 ## Requirements
 
-- Ubuntu host with UFW available
-- `become: true` at play/role inclusion level
-- `community.general` collection for the UFW module task
+- Ansible >= 2.14
+- Collection: `community.general`
+- Target OS: Ubuntu, Debian (with UFW installed)
 
-## Role Execution Model
+## Privilege Escalation
 
-This role is intended to run subordinately from a controlling playbook.
+requires_become: true
 
-The controlling playbook should own:
-- Baseline host provisioning
-- Shared inventory and vault structure
-- Global service/firewall policy inputs
-- Role ordering and privilege model
+## Role Variables
 
-## Control Playbook Contract
+| Variable | Default | Required | Description |
+|---|---|---|---|
+| `ufw_profiles_catalog` | `[]` | No | List of profile definitions to render. Each item supports `name` (str), `ports` (list[str]), and optional `title`, `description`, `profile_filename`. |
+| `ufw_profiles_allow_applications` | `[]` | No | List of profile names to allow with `community.general.ufw` after rendering. |
+| `ufw_profiles_update_cache` | `true` | No | Whether to run `ufw app update all` when profile templates changed. |
 
-Role defaults live in `defaults/main.yml`.
-Controller inventory should provide profile catalog data and profile-allow lists.
+## Dependencies
 
-### Expected upstream variables
+None.
 
-| Variable | Required | Description |
-|---|---|---|
-| `ufw_profiles_catalog` | yes | List of UFW application profile definitions to render |
-| `ufw_profiles_allow_applications` | no | List of rendered profile names to allow |
-| `ufw_profiles_update_cache` | no | Whether to run `ufw app update all` when profile files changed |
+## Outbound Artifacts
 
-### Variable naming convention
+- Ensures directory `/etc/ufw/applications.d` exists.
+- Renders managed UFW profile files in `/etc/ufw/applications.d/`.
+- Optionally runs `ufw app update all` when profile files changed.
+- Optionally applies allow rules for profile names via `community.general.ufw`.
 
-Role-owned variables use the `ufw_profiles_` prefix.
+## Capabilities
 
-## Data Model
+- Render one or more reusable UFW application profiles from structured inventory data.
+- Normalize output filenames automatically when `profile_filename` is omitted.
+- Gate cache refresh behind change detection.
+- Apply optional allow rules from a declared profile name list.
 
-Each `ufw_profiles_catalog` item should provide:
-- `name` (required): profile section name
-- `ports` (required): list of UFW ports/protocol entries (for example `"53"`, `"67/udp"`, `"443/tcp"`)
-- `title` (optional)
-- `description` (optional)
-- `profile_filename` (optional; defaults to normalized `name`)
+## Check Mode Behavior
 
-## Example Controller Play
+- The cache-refresh command task is skipped when no profile changes are detected.
+- No tasks are gated with `when: not ansible_check_mode`.
+
+## Idempotency
+
+True. A second run with unchanged inputs should report no changes except where external UFW state is changed outside Ansible.
+
+## Atomic
+
+False. The role applies a sequence of operations (directory, files, cache update, allow rules) and does not provide all-or-nothing transactional rollback.
+
+## Rollback
+
+No automatic rollback is implemented.
+
+## Required Credentials / Privileges
+
+- Root privileges (`become: true`) to manage `/etc/ufw/applications.d` and firewall rules.
+
+## Supported Platforms
+
+- Ubuntu
+- Debian
+
+## Example Playbook
 
 ```yaml
 ---
 - name: Apply shared UFW profiles
-  hosts: all
+  hosts: firewall_hosts
+  gather_facts: false
   become: true
   roles:
-    - role: ufw_profiles
+    - role: khaosx.homelab.ufw_profiles
+      vars:
+        ufw_profiles_catalog:
+          - name: "DNS"
+            title: "Domain Name Service"
+            description: "Allow DNS traffic"
+            ports:
+              - "53"
+              - "53/udp"
+          - name: "HTTPS"
+            ports:
+              - "443/tcp"
+        ufw_profiles_allow_applications:
+          - "DNS"
+          - "HTTPS"
+        ufw_profiles_update_cache: true
 ```
 
 ## License
 
 MIT
+
+## Author
+
+khaosx

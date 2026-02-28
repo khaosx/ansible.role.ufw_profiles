@@ -1,38 +1,9 @@
 ---
-- name: Ensure ufw applications.d exists
-  ansible.builtin.file:
-    path: /etc/ufw/applications.d
-    state: directory
-    owner: root
-    group: root
-    mode: "0755"
+- name: Main | Load platform variables
+  ansible.builtin.import_tasks: set_vars.yml
 
-- name: Render ufw application profiles
-  ansible.builtin.template:
-    src: ufw_profile.j2
-    dest: "/etc/ufw/applications.d/{{ ufw_profiles_profile_filename }}"
-    owner: root
-    group: root
-    mode: "0644"
-  vars:
-    ufw_profiles_profile_filename: >-
-      {{ item.profile_filename
-        | default(item.name | lower | replace(' ', '-'))
-      }}
-  loop: "{{ ufw_profiles_catalog }}"
-  register: _ufw_profiles_render
+- name: Main | Configure profile files
+  ansible.builtin.import_tasks: configure.yml
 
-- name: Update ufw application profiles cache
-  ansible.builtin.command:
-    cmd: ufw app update all
-  when:
-    - ufw_profiles_update_cache | bool
-    - _ufw_profiles_render is changed
-  changed_when: true
-
-- name: Allow ufw application profiles
-  community.general.ufw:
-    rule: allow
-    name: "{{ item }}"
-  loop: "{{ ufw_profiles_allow_applications }}"
-  when: ufw_profiles_allow_applications | length > 0
+- name: Main | Apply profile cache and rules
+  ansible.builtin.import_tasks: apply.yml

@@ -1,0 +1,22 @@
+---
+- name: Verify UFW profile management role
+  hosts: test_hosts
+  gather_facts: false
+  become: true
+  vars:
+    ufw_profiles_verify_role_name: "ufw_profiles"
+  tasks:
+    - name: Verify | Include role under test
+      ansible.builtin.include_role:
+        name: "{{ ufw_profiles_verify_role_name }}"
+      vars:
+        ufw_profiles_catalog:
+          - name: "DNS"
+            title: "Domain Name Service"
+            description: "Allow DNS queries"
+            ports:
+              - "53"
+              - "53/udp"
+        ufw_profiles_allow_applications:
+          - "DNS"
+        ufw_profiles_update_cache: true

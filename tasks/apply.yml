@@ -1,0 +1,16 @@
+---
+# UFW has no dedicated Ansible module action for rebuilding app profiles cache.
+- name: Apply | Update UFW application profiles cache
+  ansible.builtin.command:
+    cmd: ufw app update all
+  changed_when: true
+  when:
+    - ufw_profiles_update_cache | bool
+    - __ufw_profiles_render is changed
+
+- name: Apply | Allow configured UFW application profiles
+  community.general.ufw:
+    rule: allow
+    name: "{{ item }}"
+  loop: "{{ ufw_profiles_allow_applications }}"
+  when: ufw_profiles_allow_applications | length > 0

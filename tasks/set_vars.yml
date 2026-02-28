@@ -1,0 +1,17 @@
+---
+- name: Set Vars | Ensure required facts are available
+  ansible.builtin.setup:
+    gather_subset: min
+  when: not ansible_facts.keys() | list |
+    intersect(__ufw_profiles_required_facts) == __ufw_profiles_required_facts
+
+- name: Set Vars | Load platform/version specific variables
+  ansible.builtin.include_vars: "{{ __ufw_profiles_vars_file }}"
+  loop:
+    - "{{ ansible_facts['os_family'] }}.yml"
+    - "{{ ansible_facts['distribution'] }}.yml"
+    - "{{ ansible_facts['distribution'] }}_{{ ansible_facts['distribution_major_version'] }}.yml"
+    - "{{ ansible_facts['distribution'] }}_{{ ansible_facts['distribution_version'] }}.yml"
+  vars:
+    __ufw_profiles_vars_file: "{{ role_path }}/vars/{{ item }}"
+  when: __ufw_profiles_vars_file is file

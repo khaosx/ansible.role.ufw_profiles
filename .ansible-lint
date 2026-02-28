@@ -1,0 +1,14 @@
+---
+profile: production
+
+exclude_paths:
+  - .git/
+  - .ansible/
+  - collections/
+
+warn_list:
+  - yaml[line-length]
+
+skip_list: []
+
+use_default_rules: true

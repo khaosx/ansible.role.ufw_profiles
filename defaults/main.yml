@@ -1,4 +1,10 @@
 ---
+# UFW application profiles to render into /etc/ufw/applications.d.
+# Each item supports: name (required), ports (required), title (optional), description (optional), profile_filename (optional).
 ufw_profiles_catalog: []
+
+# Names of UFW application profiles to allow after rendering.
 ufw_profiles_allow_applications: []
+
+# Rebuild UFW app cache when rendered profile files change.
 ufw_profiles_update_cache: true

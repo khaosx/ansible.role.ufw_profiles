@@ -1,0 +1,6 @@
+---
+__ufw_profiles_required_facts:
+  - "os_family"
+  - "distribution"
+  - "distribution_major_version"
+  - "distribution_version"
