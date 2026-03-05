@@ -13,4 +13,6 @@
     rule: allow
     name: "{{ item }}"
   loop: "{{ ufw_profiles_allow_applications }}"
-  when: ufw_profiles_allow_applications | length > 0
+  when:
+    - not ansible_check_mode
+    - ufw_profiles_allow_applications | length > 0
